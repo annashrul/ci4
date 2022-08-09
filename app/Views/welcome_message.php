@@ -46,9 +46,9 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="formSubmit">
-                <input type="text" name="id" id="id">
+                <input type="hidden" name="id" id="id">
                 <div class="modal-header">
-                    <h5 class="modal-title">Modal title</h5>
+                    <h5 class="modal-title" id="modalTitle">Modal title</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -60,7 +60,7 @@
                     </div>
                     <div class="form-group">
                         <label for="">Email</label>
-                        <input type="text" name="email" id="email" class="form-control">
+                        <input type="email" name="email" id="email" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -78,7 +78,6 @@
         loadData();
         $("#formSubmit").on("submit",function(event){
             event.preventDefault();
-            $("#btnSubmit").text("loading ...");
             const formData = new FormData(event.currentTarget);
             let column={};
             for (let [key, value] of formData.entries()) {
@@ -89,18 +88,19 @@
                 }
                 Object.assign(column,{[key]:value})
             }
+            $("#btnSubmit").text("loading ...");
 
-            console.log(column)
+
             $.ajax({
                 data:column,
                 url:"/create",
                 type:"POST",
                 dataType:"JSON",
                 success:function(res){
-                    console.log(res);
                     loadData();
                     $("#modalForm").modal("hide");
                     $("#formSubmit").trigger("reset");
+                    $("#btnSubmit").text("save");
                 }
             })
         })
@@ -119,9 +119,8 @@
 
     function deleted(id){
         const check = confirm("are you sure ?");
-        console.log(check)
-        $(`#id${id}`).html('loading ....');
         if(check){
+            $(`#id${id}`).html('loading ....');
             const column={id:id};
             $.ajax({
                 url:"/delete",
@@ -129,7 +128,6 @@
                 dataType:"JSON",
                 data:column,
                 success:function(res){
-                    console.log(res)
                     loadData();
                     $(`#id${id}`).html('Delete');
                 }
@@ -145,20 +143,28 @@
             dataType:"JSON",
             data:column,
             success:function(res){
-                $("#modalForm").modal("show");
-                $(`#edit_${id}`).html('Edit');
-                console.log(res);
-                $("#id").val(res.res.id)
-                $("#name").val(res.res.name)
-                $("#email").val(res.res.email)
+                if(res.status){
+                    $("#modalForm").modal("show");
+                    $(`#edit_${id}`).html('Edit');
+                    $("#id").val(res.res.id);
+                    $("#name").val(res.res.name);
+                    $("#email").val(res.res.email);
+                    $("#modalTitle").html("FORM EDIT");
+                }
+                else{
+                    alert("get data failed");
+                }
 
             }
         })
     }
 
     function actionModal(param){
+        $("#id").val("");
+        $("#formSubmit").trigger("reset");
         $("#btnSubmit").text("save");
-        $("#modalForm").modal("show")
+        $("#modalForm").modal("show");
+        $("#modalTitle").html("FORM ADD");
     }
 
 
